@@ -103,3 +103,36 @@ ERROS deletar(Infos infos[], int *pos) {
 
     return OK;
 }
+
+ERROS listar(Infos infos[], int *pos) {
+    if (*pos == 0) {
+        printf("Nenhum cliente cadastrado.\n");
+        return SEM_TAREFAS;
+    }
+    
+    printf("-------------------------\n");
+    printf("Lista de clientes:\n");
+    for (int i = 0; i < *pos; i++) {
+        printf("Nome: %s\n", infos[i].nome);  
+        printf("CPF: ");
+        for (int j = 0; j < 11; j++) {
+            printf("%d", infos[i].cpf[j]);
+        }
+        printf("\n");   
+
+       
+        if (infos[i].tipo_conta == 0) {
+            printf("Tipo de conta: comum\n");
+        } else if (infos[i].tipo_conta == 1) {
+            printf("Tipo de conta: plus\n");
+        } else {
+            printf("Tipo de conta: desconhecido\n");
+        }
+
+   
+        printf("Saldo inicial: %.2f\n", infos[i].saldo);
+    }
+        printf("-------------------------\n");
+    
+    return OK;
+}
