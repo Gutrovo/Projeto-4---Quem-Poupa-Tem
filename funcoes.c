@@ -136,3 +136,60 @@ ERROS listar(Infos infos[], int *pos) {
     
     return OK;
 }
+
+
+ERROS deposito(Infos infos[], int *pos) {
+    long long cpf;
+    int senha;
+    float valorDep;
+    char data[11]; 
+
+
+    
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    strftime(data, sizeof(data), "%d/%m/%Y", &tm); 
+
+  
+    printf("Digite seu CPF (11 dígitos): ");
+    scanf("%lld", &cpf); 
+    clearBuffer(); 
+
+    printf("Digite sua senha: ");
+    scanf("%d", &senha);
+
+    printf("Digite o valor a ser depositado: ");
+    scanf("%f", &valorDep); 
+
+    
+    int indiceCliente = buscaClientePorCPF(infos, *pos, cpf);
+
+    if (indiceCliente == -1) { 
+        printf("Cliente não encontrado.\n");
+        return NAO_ENCONTRADO;
+    }
+
+   
+    if (infos[indiceCliente].senha != senha) { 
+        printf("Senha incorreta.\n");
+        return OK; 
+    }
+
+     infos[indiceCliente].saldo += valorDep;
+    int trans_idx = infos[indiceCliente].qtd_transacoes;
+    if (trans_idx < MAX_TRANSACOES) { 
+        strcpy(infos[indiceCliente].transacoes[trans_idx].descricao, "Depósito");
+        infos[indiceCliente].transacoes[trans_idx].valor = valorDep;
+        strcpy(infos[indiceCliente].transacoes[trans_idx].data, data); 
+        infos[indiceCliente].qtd_transacoes++; 
+    } else {
+        printf("Limite de transações atingido.\n");
+    }
+    
+  printf("Depósito realizado com sucesso!\n");
+  printf("Saldo atual: %.2f\n", infos[indiceCliente].saldo);
+
+   return OK;
+        
+
+}
