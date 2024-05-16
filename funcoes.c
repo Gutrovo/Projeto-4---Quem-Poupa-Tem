@@ -337,4 +337,92 @@ ERROS extrato(Infos infos[], int *pos){
 
     return OK;
 }
-giy
+
+ERROS transferencia(Infos infos[], int *pos) {
+    long long cpfOrigem;
+    long long cpfDestino;
+    int senha;
+    float valor;
+    float tarifa;
+    float valorTotal;
+    char data[11]; 
+
+
+
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    strftime(data, sizeof(data), "%d/%m/%Y", &tm); 
+
+    printf("Digite o CPF do remetente (11 dígitos): ");
+    scanf("%lld", &cpfOrigem);
+    clearBuffer(); 
+
+    printf("Digite a senha do remetente: ");
+    scanf("%d", &senha);
+
+    printf("Digite o CPF do destinatário (11 dígitos): ");
+    scanf("%lld", &cpfDestino);
+    clearBuffer();
+
+    printf("Digite o valor a ser transferido: ");
+    scanf("%f", &valor);
+
+    int indiceOrigem = buscaClientePorCPF(infos, *pos, cpfOrigem);
+    int indiceDestino = buscaClientePorCPF(infos, *pos, cpfDestino);
+
+    if (indiceOrigem == -1 || indiceDestino == -1) {
+        printf("CPF do remetente ou destinatário não encontrado.\n");
+        return NAO_ENCONTRADO;
+    }
+
+    if (infos[indiceOrigem].senha != senha) {
+        printf("Senha incorreta.\n");
+        return OK; 
+    }
+
+    if (infos[indiceOrigem].tipo_conta == 0) { 
+        tarifa = valor ;
+        valorTotal = valor + tarifa;
+        if (infos[indiceOrigem].saldo - valorTotal < -1000) {
+            printf("Transferência recusada, saldo insuficiente.\n");
+            return OK; 
+        }
+    } else if (infos[indiceOrigem].tipo_conta == 1) { 
+        tarifa = valor ;
+        valorTotal = valor + tarifa;
+        if (infos[indiceOrigem].saldo - valorTotal < -5000) {
+            printf("Transferência recusada, saldo insuficiente.\n");
+            return OK;
+        }
+    }
+
+
+    infos[indiceOrigem].saldo -= valorTotal; 
+    infos[indiceDestino].saldo += valor; 
+
+   
+    int idxOrigem = infos[indiceOrigem].qtd_transacoes;
+    if (idxOrigem < MAX_TRANSACOES) {
+        strcpy(infos[indiceOrigem].transacoes[idxOrigem].descricao, "Transferência");
+        infos[indiceOrigem].transacoes[idxOrigem].valor = valorTotal;
+        strcpy(infos[indiceOrigem].transacoes[idxOrigem].data, data); 
+        infos[indiceOrigem].qtd_transacoes++;
+    } else {
+        printf("Limite de transações para o remetente atingido.\n");
+    }
+
+    int idxDestino = infos[indiceDestino].qtd_transacoes;
+    if (idxDestino < MAX_TRANSACOES) {
+        strcpy(infos[indiceDestino].transacoes[idxDestino].descricao, "Recebimento de transferência");
+        infos[indiceDestino].transacoes[idxDestino].valor = valor; 
+        strcpy(infos[indiceDestino].transacoes[idxDestino].data, data); 
+        infos[indiceDestino].qtd_transacoes++;
+    } else {
+        printf("Limite de transações para o destinatário atingido.\n");
+    }
+
+    printf("Transferência realizada com sucesso!\n");
+
+    return OK; 
+}
+
