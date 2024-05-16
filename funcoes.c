@@ -280,3 +280,61 @@ ERROS deposito(Infos infos[], int *pos) {
         
 
 }
+
+
+ERROS extrato(Infos infos[], int *pos){
+    long long cpf;
+    int senha;
+    
+
+
+    printf("Digite seu CPF (11 dígitos): ");
+    scanf("%lld", &cpf); 
+    clearBuffer(); 
+
+    printf("Digite sua senha: ");
+    scanf("%d", &senha);
+    clearBuffer(); 
+
+ 
+    int indiceCliente = buscaClientePorCPF(infos, *pos, cpf);
+
+    if (indiceCliente == -1) { 
+        printf("Cliente não encontrado.\n");
+        return NAO_ENCONTRADO;
+    }
+
+
+    if (infos[indiceCliente].senha != senha) { 
+        printf("Senha incorreta.\n");
+        return OK; 
+    }
+
+
+    printf("------------------\n");
+    printf("Cliente: %s\n", infos[indiceCliente].nome);
+    printf("CPF: ");
+    for (int i = 0; i < 11; i++) { 
+        printf("%d", infos[indiceCliente].cpf[i]); 
+    }
+    printf("\n");
+
+    printf("Tipo de conta: %s\n", (infos[indiceCliente].tipo_conta == 0) ? "comum" : "plus");
+    printf("Saldo atual: %.2f\n", infos[indiceCliente].saldo);
+    printf("------------------\n");
+
+    printf("\n");
+    
+    printf("Histórico de transações:\n");
+    for (int i = 0; i < infos[indiceCliente].qtd_transacoes; i++) {
+        printf("Transação %d:\n", i + 1);
+        printf("  Data: %s\n", infos[indiceCliente].transacoes[i].data);
+        printf("  Descrição: %s\n", infos[indiceCliente].transacoes[i].descricao);
+        printf("  Valor: %.2f\n", infos[indiceCliente].transacoes[i].valor);
+    }
+
+    printf("-------------------------\n");
+
+    return OK;
+}
+giy
