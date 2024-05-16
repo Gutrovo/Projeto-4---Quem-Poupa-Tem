@@ -138,6 +138,93 @@ ERROS listar(Infos infos[], int *pos) {
 }
 
 
+ERROS debito(Infos infos[], int *pos) {
+    long long cpf;
+    int senha;
+    float valorDeb;
+    char data[11]; 
+
+
+
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+    strftime(data, sizeof(data), "%d/%m/%Y", &tm); 
+
+    
+    printf("Digite seu CPF (11 dígitos): ");
+    scanf("%lld", &cpf); 
+    clearBuffer(); 
+
+    printf("Digite sua senha: ");
+    scanf("%d", &senha); 
+
+    printf("Digite o valor a ser debitado: ");
+    scanf("%f", &valorDeb); 
+
+   
+    int indiceCliente = buscaClientePorCPF(infos, *pos, cpf);
+
+    if (indiceCliente == -1) { 
+        printf("Cliente não encontrado.\n");
+        return NAO_ENCONTRADO;
+    }
+
+    
+    if (infos[indiceCliente].senha != senha) { 
+        printf("Senha incorreta.\n");
+        return OK; 
+    }
+
+   
+    float tarifa;
+    if (infos[indiceCliente].tipo_conta == 0) {
+        tarifa = valorDeb * 0.05;
+        if (infos[indiceCliente].saldo - (valorDeb + tarifa) < -1000) {
+            printf("Débito recusado. Saldo insuficiente.\n");
+            return OK;
+        }
+    } else if (infos[indiceCliente].tipo_conta == 1) { 
+        tarifa = valorDeb * 0.03;
+        if (infos[indiceCliente].saldo - (valorDeb + tarifa) < -5000) {
+            printf("Débito recusado. Saldo insuficiente.\n");
+            return OK;
+        }
+    } else {
+        printf("Tipo de conta inválido.\n");
+        return OK;
+    }
+
+   
+    infos[indiceCliente].saldo -= (valorDeb + tarifa); 
+
+
+    int trans_idx = infos[indiceCliente].qtd_transacoes;
+    if (trans_idx < MAX_TRANSACOES) { 
+        strcpy(infos[indiceCliente].transacoes[trans_idx].descricao, "Débito");
+        infos[indiceCliente].transacoes[trans_idx].valor = valorDeb + tarifa;
+        strcpy(infos[indiceCliente].transacoes[trans_idx].data, data); 
+        infos[indiceCliente].qtd_transacoes++; 
+    } else {
+        printf("Limite de transações atingido.\n");
+    }
+
+    
+    printf("Débito realizado com sucesso!\n");
+    printf("Tarifa: %.2f\n", tarifa);
+    printf("Saldo atual: %.2f\n", infos[indiceCliente].saldo);
+
+    return OK;
+}
+
+
+
+
+
+
+
+
+
+
 ERROS deposito(Infos infos[], int *pos) {
     long long cpf;
     int senha;
