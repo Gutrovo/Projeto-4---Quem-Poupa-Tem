@@ -1,5 +1,8 @@
 #define TOTAL 255
-#define MAX_TRANSACOES 100 
+#define TRANSACOES 100 
+
+
+
 
 typedef struct {
     char descricao[50]; 
@@ -13,11 +16,9 @@ typedef struct {
     int tipo_conta; 
     int senha;
     float saldo;
-    Transacao transacoes[MAX_TRANSACOES]; 
+    Transacao transacoes[TRANSACOES]; 
     int qtd_transacoes;
     
-
-
 } Infos;
 
 typedef enum {OK, MAX_TAREFA, SEM_TAREFAS, NAO_ENCONTRADO, ABRIR, FECHAR, ESCREVER, LER} ERROS;
@@ -36,3 +37,5 @@ ERROS salvar(Infos infos[], int *pos);
 ERROS carregar(Infos infos[], int *pos);
 
 void clearBuffer();
+
+

@@ -2,6 +2,17 @@
 #include <stdio.h>
 #include <time.h>
 
+int Digitos(long long num) {
+    int digitos = 0;
+    while (num != 0) {
+        num /= 10;
+        digitos++;
+    }
+    return digitos;
+}
+
+
+
 
 ERROS addCriaCliente(Infos infos[], int *pos) {
     if (*pos >= TOTAL) {
@@ -138,13 +149,35 @@ ERROS listar(Infos infos[], int *pos) {
     return OK;
 }
 
+int buscaClientePorCPF(Infos infos[], int pos, long long cpf) {
+    int cpf_digitos[11];
+    for (int i = 0; i < 11; i++) {
+        cpf_digitos[10 - i] = (int)(cpf % 10);
+        cpf /= 10; 
+    }
+
+    for (int i = 0; i < pos; i++) {
+        int igual = 1; 
+        for (int j = 0; j < 11; j++) {
+            if (infos[i].cpf[j] != cpf_digitos[j]) { 
+                igual = 0; 
+                break;
+            }
+        }
+        if (igual) {
+            return i; 
+        }
+    }
+    return -1; 
+}
+
 
 ERROS debito(Infos infos[], int *pos) {
     long long cpf;
     int senha;
     float valorDeb;
     char data[11]; 
-
+    long indiceCliente;
 
 
     time_t t = time(NULL);
@@ -163,7 +196,7 @@ ERROS debito(Infos infos[], int *pos) {
     scanf("%f", &valorDeb); 
 
    
-    int indiceCliente = buscaClientePorCPF(infos, *pos, cpf);
+    indiceCliente = buscaClientePorCPF(infos, *pos, cpf);
 
     if (indiceCliente == -1) { 
         printf("Cliente não encontrado.\n");
@@ -200,7 +233,7 @@ ERROS debito(Infos infos[], int *pos) {
 
 
     int trans_idx = infos[indiceCliente].qtd_transacoes;
-    if (trans_idx < MAX_TRANSACOES) { 
+    if (trans_idx < TRANSACOES) { 
         strcpy(infos[indiceCliente].transacoes[trans_idx].descricao, "Débito");
         infos[indiceCliente].transacoes[trans_idx].valor = valorDeb + tarifa;
         strcpy(infos[indiceCliente].transacoes[trans_idx].data, data); 
@@ -231,6 +264,7 @@ ERROS deposito(Infos infos[], int *pos) {
     int senha;
     float valorDep;
     char data[11]; 
+    long indiceCliente;
 
 
     
@@ -250,7 +284,7 @@ ERROS deposito(Infos infos[], int *pos) {
     scanf("%f", &valorDep); 
 
     
-    int indiceCliente = buscaClientePorCPF(infos, *pos, cpf);
+    indiceCliente = buscaClientePorCPF(infos, *pos, cpf);
 
     if (indiceCliente == -1) { 
         printf("Cliente não encontrado.\n");
@@ -265,7 +299,7 @@ ERROS deposito(Infos infos[], int *pos) {
 
      infos[indiceCliente].saldo += valorDep;
     int trans_idx = infos[indiceCliente].qtd_transacoes;
-    if (trans_idx < MAX_TRANSACOES) { 
+    if (trans_idx < TRANSACOES) { 
         strcpy(infos[indiceCliente].transacoes[trans_idx].descricao, "Depósito");
         infos[indiceCliente].transacoes[trans_idx].valor = valorDep;
         strcpy(infos[indiceCliente].transacoes[trans_idx].data, data); 
@@ -403,7 +437,7 @@ ERROS transferencia(Infos infos[], int *pos) {
 
    
     int idxOrigem = infos[indiceOrigem].qtd_transacoes;
-    if (idxOrigem < MAX_TRANSACOES) {
+    if (idxOrigem < TRANSACOES) {
         strcpy(infos[indiceOrigem].transacoes[idxOrigem].descricao, "Transferência");
         infos[indiceOrigem].transacoes[idxOrigem].valor = valorTotal;
         strcpy(infos[indiceOrigem].transacoes[idxOrigem].data, data); 
@@ -413,7 +447,7 @@ ERROS transferencia(Infos infos[], int *pos) {
     }
 
     int idxDestino = infos[indiceDestino].qtd_transacoes;
-    if (idxDestino < MAX_TRANSACOES) {
+    if (idxDestino <TRANSACOES) {
         strcpy(infos[indiceDestino].transacoes[idxDestino].descricao, "Recebimento de transferência");
         infos[indiceDestino].transacoes[idxDestino].valor = valor; 
         strcpy(infos[indiceDestino].transacoes[idxDestino].data, data); 
@@ -427,3 +461,97 @@ ERROS transferencia(Infos infos[], int *pos) {
     return OK; 
 }
 
+
+
+ERROS gravar(Infos infos[], int *pos){
+    FILE *f = fopen("arquivo.txt", "w");
+        if (f == NULL) {
+            return ABRIR;
+        }
+
+    for (int i = 0; i < *pos; i++) {
+
+        
+        fprintf(f, "Nome: %s\n", infos[i].nome); 
+        fprintf(f, "CPF: "); 
+        for (int j = 0; j < 11; j++) { 
+            fprintf(f, "%d", infos[i].cpf[j]);
+        }
+        fprintf(f, "\n");
+
+        fprintf(f, "Tipo de conta: %s\n", 
+                (infos[i].tipo_conta == 0) ? "comum" : "plus"); 
+        fprintf(f, "Saldo: %.2f\n", infos[i].saldo); 
+
+        
+        fprintf(f, "Histórico de transações:\n");
+        for (int k = 0; k < infos[i].qtd_transacoes; k++) {
+            fprintf(f, "  Descrição: %s\n", infos[i].transacoes[k].descricao);
+            fprintf(f, "  Valor: %.2f\n", infos[i].transacoes[k].valor);
+            fprintf(f, "  Data: %s\n", infos[i].transacoes[k].data);
+        }
+
+        fprintf(f, "-------------------------\n");
+    }
+
+
+       
+
+        if (fclose(f) != 0) { 
+            return FECHAR; 
+        }
+
+        return OK;
+    }
+
+
+
+
+
+ERROS salvar(Infos infos[], int *pos){
+    FILE *f = fopen("tarefas.bin", "wb");
+    if(f == NULL)
+        return ABRIR;
+
+    int qtd = fwrite(infos, TOTAL, sizeof(Infos), f);
+    if(qtd == 0)
+        return ESCREVER;
+
+    qtd = fwrite(pos, 1, sizeof(int), f);
+    if(qtd == 0)
+        return ESCREVER;
+
+    if(fclose(f))
+        return FECHAR;
+
+    return OK;
+}
+
+
+ERROS carregar(Infos infos[], int *pos){
+    FILE *f = fopen("tarefas.bin", "rb");
+    if(f == NULL)
+        return ABRIR;
+
+    int qtd = fread(infos, TOTAL, sizeof(Infos), f);
+    if(qtd == 0)
+        return LER;
+
+    qtd = fread(pos, 1, sizeof(int), f);
+    if(qtd == 0)
+        return LER;
+
+    if(fclose(f))
+        return FECHAR;
+
+    return OK;
+
+}
+
+
+
+void clearBuffer() {
+  int c;
+  while ((c = getchar()) != '\n' && c != EOF)
+    ;
+}
