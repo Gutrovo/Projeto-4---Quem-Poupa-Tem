@@ -14,13 +14,13 @@ ERROS addCriaCliente(Infos infos[], int *pos) {
     infos[*pos].nome[strcspn(infos[*pos].nome, "\n")] = 0; 
 
    
-    long long cpf; 
+    long cpf; 
     while (1) {
         printf("Entre com seu CPF (11 dígitos): ");
         scanf("%lld", &cpf); 
         clearBuffer(); 
 
-        if (cpf >= 10000000000LL && cpf <= 99999999999LL) { 
+        if (Digitos(cpf) == 11){ 
            
             for (int i = 0; i < 11; i++) {
                 infos[*pos].cpf[10 - i] = (int)(cpf % 10); 
@@ -34,6 +34,7 @@ ERROS addCriaCliente(Infos infos[], int *pos) {
 
    
     printf("Digite o tipo da conta (comum/plus): ");
+    
     char tipo[10];
     fgets(tipo, sizeof(tipo), stdin);
     tipo[strcspn(tipo, "\n")] = 0; 
